@@ -926,8 +926,10 @@ FAR struct mtd_dev_s *spi_initialize(int bus)
     }
 #endif
 
+#if defined(CONFIG_MTD_W25_QSPI) || defined(CONFIG_MTD_GD5F_QSPI)
     /* Check QSPI flash */
     priv->qspi = (FAR struct qspi_dev_s *)stm32_qspi_initialize(0);
+#endif
 
 #ifdef CONFIG_MTD_W25_QSPI
     ret = w25_qspi_flash_initialize(priv);
