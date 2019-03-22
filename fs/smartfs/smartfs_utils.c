@@ -791,6 +791,15 @@ int smartfs_finddirentry(struct smartfs_mountpt_s *fs,
 
                                  dirsector = SMARTFS_NEXTSECTOR(header);
                                }
+
+                             /* Write entry length */
+                             entry->datlen = direntry->datlen;
+                             ret = smartfs_writesector(fs, fs->fs_entrysector, (uint8_t *) &fs->fs_rwbuffer[offset],
+                                                       offset, entrysize);
+                             if (ret < 0)
+                               {
+                                 goto errout;
+                               }
                            }
 #ifdef CONFIG_SMARTFS_ENTRY_DATLEN
                        } /* if (entry->datlen) */
