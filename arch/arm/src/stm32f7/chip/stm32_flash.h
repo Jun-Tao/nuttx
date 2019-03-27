@@ -54,4 +54,15 @@
 #  error "Unsupported STM32 F7 part"
 #endif
 
+/************************************************************************************
+ * Public Functions
+ ************************************************************************************/
+
+void stm32_flash_lock(void);
+void stm32_flash_unlock(void);
+
+#if defined(CONFIG_STM32F7_STM32F76XX)
+int stm32_flash_writeprotect(size_t page, bool enabled);
+#endif
+
 #endif /* __ARCH_ARM_SRC_STM32F7_CHIP_STM32_FLASH_H */
