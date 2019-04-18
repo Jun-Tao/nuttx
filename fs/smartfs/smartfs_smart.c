@@ -572,7 +572,6 @@ static int smartfs_close(FAR struct file *filep)
                       sf->entry.doffset + offsetof(struct smartfs_entry_header_s, datlen), sizeof(uint32_t));
 #endif
 
-      FS_IOCTL(fs, BIOC_FLUSH, 0);
     }
 
   /* Check if we are the last one with a reference to the file and
@@ -2017,11 +2016,6 @@ errout_with_semaphore:
       kmm_free(entry.name);
     }
 
-  if (ret == OK)
-    {
-      FS_IOCTL(fs, BIOC_FLUSH, 0);
-    }
-
 #ifdef SMARTFS_API_DEBUG
   ferr("Exit\n");
 #endif
@@ -2111,11 +2105,6 @@ errout_with_semaphore:
 
       kmm_free(entry.name);
       entry.name = NULL;
-    }
-
-  if (ret == OK)
-    {
-      FS_IOCTL(fs, BIOC_FLUSH, 0);
     }
 
 #ifdef SMARTFS_API_DEBUG
@@ -2213,11 +2202,6 @@ errout_with_semaphore:
   if (entry.name != NULL)
     {
       kmm_free(entry.name);
-    }
-
-  if (ret == OK)
-    {
-      FS_IOCTL(fs, BIOC_FLUSH, 0);
     }
 
 #ifdef SMARTFS_API_DEBUG
@@ -2356,11 +2340,6 @@ errout_with_semaphore:
     {
       kmm_free(newentry.name);
       newentry.name = NULL;
-    }
-
-  if (ret == OK)
-    {
-      FS_IOCTL(fs, BIOC_FLUSH, 0);
     }
 
 #ifdef SMARTFS_API_DEBUG

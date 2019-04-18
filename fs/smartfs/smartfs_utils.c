@@ -108,6 +108,11 @@ int smartfs_writesector(struct smartfs_mountpt_s *fs, uint16_t sector, uint8_t *
     memcpy((uint8_t *)fs->fs_rwbuffer + offset, buffer, count);
   }
 
+  /* flush entry sector */
+  if (ret == OK && sector == fs->fs_entrysector) {
+    FS_IOCTL(fs, BIOC_FLUSH, 0);
+  }
+
   return ret;
 }
 
