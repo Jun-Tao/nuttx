@@ -571,6 +571,10 @@ static int smartfs_close(FAR struct file *filep)
       smartfs_writesector(fs, fs->fs_entrysector, (uint8_t *)&sf->entry.datlen,
                       sf->entry.doffset + offsetof(struct smartfs_entry_header_s, datlen), sizeof(uint32_t));
 #endif
+      /* Update time */
+      sf->entry.utc = time(NULL);
+      smartfs_writesector(fs, fs->fs_entrysector, (uint8_t *)&sf->entry.utc,
+                      sf->entry.doffset + offsetof(struct smartfs_entry_header_s, utc), sizeof(uint32_t));
 
     }
 
