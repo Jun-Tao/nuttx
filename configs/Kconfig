@@ -1728,6 +1728,16 @@ config ARCH_BOARD_TAP_H650
 	---help---
 		Select this option for H650 board
 
+config ARCH_BOARD_TAP_H920
+	bool "H920 board"
+	depends on ARCH_CHIP_STM32F7
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	select BOARD_TAP_H
+	---help---
+		Select this option for H920 board
+
 config ARCH_BOARD_CUSTOM
 	bool "Custom development board"
 	---help---
@@ -1966,6 +1976,7 @@ config ARCH_BOARD
 	default "tap-v18s"                 if ARCH_BOARD_TAP_V18S
 	default "tap-v18s02"               if ARCH_BOARD_TAP_V18S02
 	default "tap-h650"                 if ARCH_BOARD_TAP_H650
+	default "tap-h920"                 if ARCH_BOARD_TAP_H920
 
 comment "Common Board Options"
 
