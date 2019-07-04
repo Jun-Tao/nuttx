@@ -135,6 +135,10 @@ config USART1_TXBUFSIZE
 		Characters are buffered before being sent.  This specifies
 		the size of the transmit buffer.
 
+config USART1_RXFIFO_THRES
+	int "Receive fifo size"
+	default 16
+
 config USART1_BAUD
 	int "BAUD rate"
 	default 115200
@@ -200,6 +204,10 @@ config USART2_TXBUFSIZE
 		Characters are buffered before being sent.  This specifies
 		the size of the transmit buffer.
 
+config USART2_RXFIFO_THRES
+	int "Receive fifo size"
+	default 16
+
 config USART2_BAUD
 	int "BAUD rate"
 	default 115200
@@ -263,6 +271,10 @@ config USART3_TXBUFSIZE
 	---help---
 		Characters are buffered before being sent.  This specifies
 		the size of the transmit buffer.
+
+config USART3_RXFIFO_THRES
+	int "Receive fifo size"
+	default 16
 
 config USART3_BAUD
 	int "BAUD rate"
@@ -329,6 +341,10 @@ config USART4_TXBUFSIZE
 		Characters are buffered before being sent.  This specifies
 		the size of the transmit buffer.
 
+config USART4_RXFIFO_THRES
+	int "Receive fifo size"
+	default 16
+
 config USART4_BAUD
 	int "BAUD rate"
 	default 115200
@@ -394,6 +410,10 @@ config USART5_TXBUFSIZE
 		Characters are buffered before being sent.  This specifies
 		the size of the transmit buffer.
 
+config USART5_RXFIFO_THRES
+	int "Receive fifo size"
+	default 16
+
 config USART5_BAUD
 	int "BAUD rate"
 	default 115200
@@ -458,6 +478,10 @@ config USART6_TXBUFSIZE
 	---help---
 		Characters are buffered before being sent.  This specifies
 		the size of the transmit buffer.
+
+config USART6_RXFIFO_THRES
+	int "Receive fifo size"
+	default 16
 
 config USART6_BAUD
 	int "BAUD rate"

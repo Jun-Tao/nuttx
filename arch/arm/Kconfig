@@ -733,7 +733,7 @@ config ARCH_ROMPGTABLE
 		ROM/FLASH.
 
 config ARCH_HAVE_HARDFAULT_DEBUG
-	bool
+	bool "Arch have hardfault debug"
 	default n
 
 config DEBUG_HARDFAULT_ALERT

@@ -119,7 +119,7 @@ config SERIAL_TIOCSERGSTRUCT
 		support for the TIOCSERGSTRUCT will be enabled.
 
 config ARCH_HAVE_SERIAL_TERMIOS
-	bool
+	bool "arch have serial termios"
 	default n
 
 config SERIAL_TERMIOS

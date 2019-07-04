@@ -92,6 +92,7 @@
 /* Peripherals */
 
 #  define STM32H7_NGPIO                   (11)        /* GPIOA-GPIOK */
+#  define STM32H7_NDMA                    (4)         /* (4) DMA1, DMA2, BDMA and MDMA */
 #  define STM32H7_NADC                    (3)         /* (3) ADC1-3*/
 #  define STM32H7_NDAC                    (2)         /* (2) DAC1-2*/
 #  define STM32H7_NCMP                    (2)         /* (2) ultra-low power comparators */
@@ -121,17 +122,21 @@
 
 /* Diversification based on Family and package */
 
-// TODO:
-// #if defined(CONFIG_STM32F7_HAVE_FMC)
-// #  define STM32F7_NFMC                 1           /* Have FMC memory controller */
-// #else
-// #  define STM32F7_NFMC                 0           /* No FMC memory controller */
-// #endif
+#if defined(CONFIG_STM32H7_HAVE_ETHERNET)
+#  define STM32H7_NETHERNET                1   /* 100/100 Ethernet MAC */
+#else
+#  define STM32H7_NETHERNET                0   /* No 100/100 Ethernet MAC */
+#endif
 
-/* NVIC priority levels *************************************************************/
+#if defined(CONFIG_STM32F7_HAVE_FMC)
+#  define STM32F7_NFMC                     1   /* Have FMC memory controller */
+#else
+#  define STM32F7_NFMC                     0   /* No FMC memory controller */
+#endif
+
+/* NVIC priority levels **********************************************************o***/
 /* 16 Programmable interrupt levels */
 
-// TODO: check this
 #define NVIC_SYSH_PRIORITY_MIN     0xf0 /* All bits set in minimum priority */
 #define NVIC_SYSH_PRIORITY_DEFAULT 0x80 /* Midpoint is the default */
 #define NVIC_SYSH_PRIORITY_MAX     0x00 /* Zero is maximum priority */

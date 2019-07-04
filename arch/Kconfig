@@ -214,7 +214,7 @@ config ARCH_HAVE_POWEROFF
 	default n
 
 config ARCH_HAVE_PROGMEM
-	bool
+	bool "arch have progmem"
 	default n
 
 config ARCH_HAVE_RESET
@@ -222,11 +222,11 @@ config ARCH_HAVE_RESET
 	default n
 
 config ARCH_HAVE_FETCHADD
-	bool
+	bool "arch have fetchadd"
 	default n
 
 config ARCH_HAVE_RTC_SUBSECONDS
-	bool
+	bool "arch have subseconds"
 	default n
 
 config ARCH_HAVE_GARBAGE

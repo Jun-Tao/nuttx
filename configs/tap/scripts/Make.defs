@@ -55,7 +55,7 @@ NM = $(ARCROSSDEV)nm
 OBJCOPY = $(CROSSDEV)objcopy
 OBJDUMP = $(CROSSDEV)objdump
 
-MAXOPTIMIZATION		 = -O2
+MAXOPTIMIZATION		 = -g
 
 # Enable precise stack overflow tracking
 
@@ -161,5 +161,5 @@ endif
 
 HOSTCC = gcc
 HOSTINCLUDES = -I.
-HOSTCFLAGS = -Wall -Wstrict-prototypes -Wshadow -Wundef -O2 -pipe
+HOSTCFLAGS = -Wall -Wstrict-prototypes -Wshadow -Wundef -g -pipe
 HOSTLDFLAGS =

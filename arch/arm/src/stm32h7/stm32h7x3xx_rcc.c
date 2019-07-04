@@ -104,7 +104,13 @@ static inline void rcc_reset(void)
   regval  = getreg32(STM32_RCC_CR);
   regval &= ~(RCC_CR_HSEON | RCC_CR_HSI48ON |
               RCC_CR_CSION | RCC_CR_PLL1ON |
-              RCC_CR_PLL2ON | RCC_CR_PLL3ON);
+              RCC_CR_PLL2ON | RCC_CR_PLL3ON |
+              RCC_CR_HSIDIV_MASK);
+
+  /* Set HSI predivider to default (4, 16MHz) */
+
+  regval |= RCC_CR_HSIDIV_4;
+
   putreg32(regval, STM32_RCC_CR);
 
   /* Reset PLLCFGR register to reset default */
@@ -139,6 +145,11 @@ static inline void rcc_enableahb1(void)
    */
 
   regval = getreg32(STM32_RCC_AHB1ENR);
+#if defined(CONFIG_STM32H7_ADC1) || defined(CONFIG_STM32H7_ADC2)
+  /* ADC1 & 2 clock enable */
+
+  regval |= RCC_AHB1ENR_ADC12EN;
+#endif
 
 #ifdef CONFIG_STM32H7_DMA1
   /* DMA 1 clock enable */
@@ -150,6 +161,31 @@ static inline void rcc_enableahb1(void)
   /* DMA 2 clock enable */
 
   regval |= RCC_AHB1ENR_DMA2EN;
+#endif
+
+#ifdef CONFIG_STM32H7_OTGFS
+  /* USB OTG FS clock enable */
+
+  regval |= RCC_AHB1ENR_OTGFSEN;
+#endif
+
+#ifdef CONFIG_STM32H7_OTGHS
+#ifdef BOARD_ENABLE_USBOTG_HSULPI
+  /* Enable clocking for USB OTG HS and external PHY */
+
+  regval |= (RCC_AHB1ENR_OTGHSEN | RCC_AHB1ENR_OTGHSULPIEN);
+#else
+  /* Enable only clocking for USB OTG HS */
+
+  regval |= RCC_AHB1ENR_OTGHSEN;
+#endif
+#endif
+
+#ifdef CONFIG_STM32H7_ETHMAC
+  /* Enable ethernet clocks */
+
+  regval |= (RCC_AHB1ENR_ETH1MACEN | RCC_AHB1ENR_ETH1TXEN |
+             RCC_AHB1ENR_ETH1RXEN);
 #endif
 
   putreg32(regval, STM32_RCC_AHB1ENR);   /* Enable peripherals */
@@ -196,6 +232,18 @@ static inline void rcc_enableahb3(void)
 
   regval = getreg32(STM32_RCC_AHB3ENR);
 
+#ifdef CONFIG_STM32H7_MDMA
+  /* MDMA clock enable */
+
+  regval |= RCC_AHB3ENR_MDMAEN;
+#endif
+
+#ifdef CONFIG_STM32H7_SDMMC1
+  /* SDMMC clock enable */
+
+  regval |= RCC_AHB3ENR_SDMMC1EN;
+#endif
+
   // TODO: ...
 
   putreg32(regval, STM32_RCC_AHB3ENR);   /* Enable peripherals */
@@ -218,6 +266,12 @@ static inline void rcc_enableahb4(void)
    */
 
   regval = getreg32(STM32_RCC_AHB4ENR);
+
+#ifdef CONFIG_STM32H7_ADC3
+  /* ADC3 clock enable */
+
+  regval |= RCC_AHB4ENR_ADC3EN;
+#endif
 
   /* Enable GPIO, GPIOB, ... GPIOK */
 
@@ -254,6 +308,12 @@ static inline void rcc_enableahb4(void)
              | RCC_AHB4ENR_GPIOKEN
 #endif
     );
+#endif
+
+#ifdef CONFIG_STM32H7_BDMA
+  /* BDMA clock enable */
+
+  regval |= RCC_AHB4ENR_BDMAEN;
 #endif
 
 #ifdef CONFIG_STM32H7_CRC
@@ -366,7 +426,11 @@ static inline void rcc_enableapb2(void)
   regval |= RCC_APB2ENR_SPI5EN;
 #endif
 
-  // TODO: ...
+#ifdef CONFIG_STM32H7_SDMMC2
+  /* SDMMC2 clock enable */
+
+  regval |= RCC_APB2ENR_SDMMC2EN;
+#endif
 
   putreg32(regval, STM32_RCC_APB2ENR);   /* Enable peripherals */
 }
@@ -412,9 +476,11 @@ static inline void rcc_enableapb4(void)
 
   regval = getreg32(STM32_RCC_APB4ENR);
 
+#ifdef CONFIG_STM32H7_SYSCFG
   /* System configuration controller clock enable */
 
   regval |= RCC_APB4ENR_SYSCFGEN;
+#endif
 
 #ifdef CONFIG_STM32H7_I2C4
   /* I2C4 clock enable */
@@ -497,6 +563,21 @@ static void stm32_stdclockconfig(void)
     }
 #endif
 
+#define CONFIG_STM32H7_HSI48
+#ifdef CONFIG_STM32H7_HSI48
+  /* Enable HSI48 */
+
+  regval  = getreg32(STM32_RCC_CR);
+  regval |= RCC_CR_HSI48ON;
+  putreg32(regval, STM32_RCC_CR);
+
+  /* Wait until the HSI48 is ready */
+
+  while ((getreg32(STM32_RCC_CR) & RCC_CR_HSI48RDY) == 0)
+    {
+    }
+#endif
+
   /* Check for a timeout.  If this timeout occurs, then we are hosed.  We
    * have no real back-up plan, although the following logic makes it look
    * as though we do.
@@ -504,12 +585,16 @@ static void stm32_stdclockconfig(void)
 
   if (timeout > 0)
     {
-
-      /* Set the HCLK source/divider */
+      /* Set the D1 domain Core prescaler and the HCLK source/divider */
 
       regval = getreg32(STM32_RCC_D1CFGR);
+#if 1
+      regval &= ~(RCC_D1CFGR_HPRE_MASK | RCC_D1CFGR_D1CPRE_MASK);
+      regval |= (STM32_RCC_D1CFGR_HPRE | STM32_RCC_D1CFGR_D1CPRE);
+#else
       regval &= ~RCC_D1CFGR_HPRE_MASK;
       regval |= STM32_RCC_D1CFGR_HPRE;
+#endif
       putreg32(regval, STM32_RCC_D1CFGR);
 
       /* Set PCLK1 */
@@ -604,13 +689,23 @@ static void stm32_stdclockconfig(void)
       regval |= RCC_CR_PLL1ON;
       putreg32(regval, STM32_RCC_CR);
 
-      /* TODO: Enable the PLL2 */
+      /* Enable the PLL2 */
+
+      regval = getreg32(STM32_RCC_CR);
+      regval |= RCC_CR_PLL2ON;
+      putreg32(regval, STM32_RCC_CR);
 
       /* TODO: Enable the PLL3 */
 
-      /* Wait until the PLL is ready */
+      /* Wait until the PLL1 is ready */
 
       while ((getreg32(STM32_RCC_CR) & RCC_CR_PLL1RDY) == 0)
+        {
+        }
+
+      /* Wait until the PLL2 is ready */
+
+      while ((getreg32(STM32_RCC_CR) & RCC_CR_PLL2RDY) == 0)
         {
         }
 
@@ -681,6 +776,25 @@ static void stm32_stdclockconfig(void)
       regval |= STM32_RCC_D3CCIPR_SPI6SRC;
       putreg32(regval, STM32_RCC_D3CCIPR);
 #endif
+
+      /* Configure USB source clock */
+
+#if defined(STM32_RCC_D2CCIP2R_USBSRC)
+      regval = getreg32(STM32_RCC_D2CCIP2R);
+      regval &= ~RCC_D2CCIP2R_USBSEL_MASK;
+      regval |= STM32_RCC_D2CCIP2R_USBSRC;
+      putreg32(regval, STM32_RCC_D2CCIP2R);
+#endif
+
+      /* Configure ADC source clock */
+
+#if defined(STM32_RCC_D3CCIPR_ADCSEL)
+      regval = getreg32(STM32_RCC_D3CCIPR);
+      regval &= ~RCC_D3CCIPR_ADCSEL_MASK;
+      regval |= STM32_RCC_D3CCIPR_ADCSEL;
+      putreg32(regval, STM32_RCC_D3CCIPR);
+#endif
+
 
 #if defined(CONFIG_STM32H7_IWDG) || defined(CONFIG_STM32H7_RTC_LSICLOCK)
       /* Low speed internal clock source LSI */

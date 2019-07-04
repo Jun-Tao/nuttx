@@ -43,7 +43,7 @@
 #include <nuttx/config.h>
 #include <nuttx/serial/serial.h>
 
-#include "chip/stm32_uart.h"
+#include "hardware/stm32_uart.h"
 
 /************************************************************************************
  * Pre-processor Definitions
@@ -183,6 +183,105 @@
 #  undef HAVE_CONSOLE
 #endif
 
+/* DMA support is only provided if CONFIG_ARCH_DMA is in the NuttX configuration */
+
+#if !defined(HAVE_UART) || !defined(CONFIG_ARCH_DMA)
+#  undef CONFIG_USART1_RXDMA
+#  undef CONFIG_USART2_RXDMA
+#  undef CONFIG_USART3_RXDMA
+#  undef CONFIG_UART4_RXDMA
+#  undef CONFIG_UART5_RXDMA
+#  undef CONFIG_USART6_RXDMA
+#  undef CONFIG_UART7_RXDMA
+#  undef CONFIG_UART8_RXDMA
+#endif
+
+/* Disable the DMA configuration on all unused USARTs */
+
+#ifndef CONFIG_STM32H7_USART1
+#  undef CONFIG_USART1_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_USART2
+#  undef CONFIG_USART2_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_USART3
+#  undef CONFIG_USART3_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_UART4
+#  undef CONFIG_UART4_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_UART5
+#  undef CONFIG_UART5_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_USART6
+#  undef CONFIG_USART6_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_UART7
+#  undef CONFIG_UART7_RXDMA
+#endif
+
+#ifndef CONFIG_STM32H7_UART8
+#  undef CONFIG_UART8_RXDMA
+#endif
+
+/* Is DMA available on any (enabled) USART? */
+
+#undef SERIAL_HAVE_DMA
+#if defined(CONFIG_USART1_RXDMA) || defined(CONFIG_USART2_RXDMA) || \
+    defined(CONFIG_USART3_RXDMA) || defined(CONFIG_UART4_RXDMA)  || \
+    defined(CONFIG_UART5_RXDMA)  || defined(CONFIG_USART6_RXDMA) || \
+    defined(CONFIG_UART7_RXDMA)  || defined(CONFIG_UART8_RXDMA)
+#  define SERIAL_HAVE_DMA 1
+#endif
+
+/* Is DMA used on the console UART? */
+
+#undef SERIAL_HAVE_CONSOLE_DMA
+#if defined(CONFIG_USART1_SERIAL_CONSOLE) && defined(CONFIG_USART1_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_USART2_SERIAL_CONSOLE) && defined(CONFIG_USART2_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_USART3_SERIAL_CONSOLE) && defined(CONFIG_USART3_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_UART4_SERIAL_CONSOLE) && defined(CONFIG_UART4_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_UART5_SERIAL_CONSOLE) && defined(CONFIG_UART5_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_USART6_SERIAL_CONSOLE) && defined(CONFIG_USART6_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_UART7_SERIAL_CONSOLE) && defined(CONFIG_UART7_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#elif defined(CONFIG_UART8_SERIAL_CONSOLE) && defined(CONFIG_UART8_RXDMA)
+#  define SERIAL_HAVE_CONSOLE_DMA 1
+#endif
+
+/* Is DMA used on all (enabled) USARTs */
+
+#define SERIAL_HAVE_ONLY_DMA 1
+#if defined(CONFIG_STM32H7_USART1) && !defined(CONFIG_USART1_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_USART2) && !defined(CONFIG_USART2_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_USART3) && !defined(CONFIG_USART3_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_UART4) && !defined(CONFIG_UART4_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_UART5) && !defined(CONFIG_UART5_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_USART6) && !defined(CONFIG_USART6_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_UART7) && !defined(CONFIG_UART7_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#elif defined(CONFIG_STM32H7_UART8) && !defined(CONFIG_UART8_RXDMA)
+#  undef SERIAL_HAVE_ONLY_DMA
+#endif
+
 /* Is RS-485 used? */
 
 #if defined(CONFIG_USART1_RS485) || defined(CONFIG_USART2_RS485) || \
@@ -230,6 +329,23 @@ extern "C"
  ************************************************************************************/
 
 FAR uart_dev_t *stm32_serial_get_uart(int uart_num);
+
+/************************************************************************************
+ * Name: stm32_serial_dma_poll
+ *
+ * Description:
+ *   Must be called periodically if any STM32 UART is configured for DMA.  The DMA
+ *   callback is triggered for each FIFO size/2 bytes, but this can result in some
+ *   bytes being transferred but not collected if the incoming data is not a whole
+ *   multiple of half the FIFO size.
+ *
+ *   May be safely called from either interrupt or thread context.
+ *
+ ************************************************************************************/
+
+#ifdef SERIAL_HAVE_DMA
+void stm32_serial_dma_poll(void);
+#endif
 
 #undef EXTERN
 #if defined(__cplusplus)

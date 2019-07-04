@@ -55,7 +55,7 @@
 /* Clocking *************************************************************************/
 /* The Nucleo-144  board provides the following clock sources:
  *
- *   MCO: 8 MHz from MCO output of ST-LINK is used as input clock
+ *   MCO: 8 MHz from MCO output of ST-LINK is used as input clock (default)
  *   X2:  32.768 KHz crystal for LSE
  *   X3:  HSE crystal oscillator (not provided)
  *
@@ -67,7 +67,7 @@
  *   LSE: 32.768 kHz
  */
 
-#define STM32_BOARD_XTAL        8000000ul
+#define STM32_BOARD_XTAL        8000000ul /* ST-LINK MCO */
 
 #define STM32_HSI_FREQUENCY     16000000ul
 #define STM32_LSI_FREQUENCY     32000
@@ -134,15 +134,17 @@
 
 /* PLL2 */
 
-#define STM32_PLLCFG_PLL2CFG 0
-#define STM32_PLLCFG_PLL2M   0
-#define STM32_PLLCFG_PLL2N   0
-#define STM32_PLLCFG_PLL2P   0
-#define STM32_PLLCFG_PLL2Q   0
-#define STM32_PLLCFG_PLL2R   0
+#define STM32_PLLCFG_PLL2CFG (RCC_PLLCFGR_PLL2VCOSEL_WIDE | \
+                              RCC_PLLCFGR_PLL2RGE_4_8_MHZ | \
+                              RCC_PLLCFGR_DIVP2EN)
+#define STM32_PLLCFG_PLL2M       RCC_PLLCKSELR_DIVM2(2)
+#define STM32_PLLCFG_PLL2N       RCC_PLL2DIVR_N2(200)
+#define STM32_PLLCFG_PLL2P       RCC_PLL2DIVR_P2(40)
+#define STM32_PLLCFG_PLL2Q       0
+#define STM32_PLLCFG_PLL2R       0
 
-#define STM32_VCO2_FREQUENCY
-#define STM32_PLL2P_FREQUENCY
+#define STM32_VCO2_FREQUENCY     ((STM32_HSE_FREQUENCY / 2) * 200)
+#define STM32_PLL2P_FREQUENCY    (STM32_VCO2_FREQUENCY / 2)
 #define STM32_PLL2Q_FREQUENCY
 #define STM32_PLL2R_FREQUENCY
 
@@ -164,6 +166,7 @@
  * CPUCLK = SYSCLK / 1 = 400 MHz
  */
 
+#define STM32_RCC_D1CFGR_D1CPRE  (RCC_D1CFGR_D1CPRE_SYSCLK)
 #define STM32_SYSCLK_FREQUENCY   (STM32_PLL1P_FREQUENCY)
 #define STM32_CPUCLK_FREQUENCY   (STM32_SYSCLK_FREQUENCY / 1)
 
@@ -198,6 +201,28 @@
 #define STM32_RCC_D3CFGR_D3PPRE   RCC_D3CFGR_D3PPRE_HCLKd4       /* PCLK4 = HCLK / 4 */
 #define STM32_PCLK4_FREQUENCY     (STM32_HCLK_FREQUENCY/4)
 
+/* Timer clock frequencies */
+
+/* Timers driven from APB1 will be twice PCLK1 */
+
+#define STM32_APB1_TIM2_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM3_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM4_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM5_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM6_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM7_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM12_CLKIN  (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM13_CLKIN  (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM14_CLKIN  (2*STM32_PCLK1_FREQUENCY)
+
+/* Timers driven from APB2 will be twice PCLK2 */
+
+#define STM32_APB2_TIM1_CLKIN   (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM8_CLKIN   (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM15_CLKIN  (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM16_CLKIN  (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM17_CLKIN  (2*STM32_PCLK2_FREQUENCY)
+
 /* Kernel Clock Configuration
  *
  * Note: look at Table 54 in ST Manual
@@ -211,7 +236,7 @@
 
 #define STM32_RCC_D2CCIP3R_I2C4SRC   RCC_D2CCIP3R_I2C4SEL_HSI
 
-/* SPI123 clock source - PLL1 */
+/* SPI123 clock source - PLL1Q */
 
 #define STM32_RCC_D2CCIP1R_SPI123SRC RCC_D2CCIP1R_SPI123SEL_PLL1
 
@@ -222,6 +247,14 @@
 /* SPI6 clock source - APB (PCLK4) */
 
 #define STM32_RCC_D3CCIP1R_SPI6SRC   RCC_D3CCIP1R_SPI6SEL_PCLK4
+
+/* USB 1 and 2 clock source - HSI48 */
+
+#define STM32_RCC_D2CCIP2R_USBSRC    RCC_D2CCIP2R_USBSEL_HSI48
+
+/* ADC 1 2 3 clock source - pll2_pclk */
+
+#define STM32_RCC_D3CCIPR_ADCSEL     RCC_D3CCIPR_ADCSEL_PLL2
 
 /* FLASH wait states
  *
@@ -244,6 +277,25 @@
  */
 
 #define BOARD_FLASH_WAITSTATES 4
+
+/* SDMMC definitions ****************************************************************/
+
+/* Init 400kHz, PLL1Q/(2*250) */
+
+#define STM32_SDMMC_INIT_CLKDIV     (250 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+
+/* Just set these to 25 MHz for now, PLL1Q/(2*4), for default speed 12.5MB/s */
+
+#define STM32_SDMMC_MMCXFR_CLKDIV   (4 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+#define STM32_SDMMC_SDXFR_CLKDIV    (4 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+
+#define STM32_SDMMC_CLKCR_EDGE      STM32_SDMMC_CLKCR_NEGEDGE
+
+/* Ethernet definitions ****************************************************************/
+
+#define GPIO_ETH_RMII_TXD0    GPIO_ETH_RMII_TXD0_2    /* PG13 */
+#define GPIO_ETH_RMII_TXD1    GPIO_ETH_RMII_TXD1_1    /* PB 13 */
+#define GPIO_ETH_RMII_TX_EN   GPIO_ETH_RMII_TX_EN_2
 
 /* LED definitions ******************************************************************/
 /* The Nucleo-144 board has numerous LEDs but only three, LD1 a Green LED, LD2 a Blue
@@ -316,10 +368,16 @@
 #define GPIO_USART6_RX     GPIO_USART6_RX_2  /* PG9 */
 #define GPIO_USART6_TX     GPIO_USART6_TX_2  /* PG14 */
 
-/* I2C1 Use Nucleo I2C pins */
+/* I2C1 Use Nucleo I2C1 pins */
 
-#define GPIO_I2C1_SCL GPIO_I2C1_SCL_2 /* PB8 */
-#define GPIO_I2C1_SDA GPIO_I2C1_SDA_2 /* PB9 */
+#define GPIO_I2C1_SCL GPIO_I2C1_SCL_2 /* PB8 - D15 */
+#define GPIO_I2C1_SDA GPIO_I2C1_SDA_2 /* PB9 - D14 */
+
+/* I2C2 Use Nucleo I2C2 pins */
+
+#define GPIO_I2C2_SCL  GPIO_I2C2_SCL_2  /* PF1 - D69 */
+#define GPIO_I2C2_SDA  GPIO_I2C2_SDA_2  /* PF0 - D68 */
+#define GPIO_I2C2_SMBA GPIO_I2C2_SMBA_2 /* PF2 - D70 */
 
 /* SPI3 */
 
@@ -327,6 +385,21 @@
 #define GPIO_SPI3_MOSI GPIO_SPI3_MOSI_4 /* PB5 */
 #define GPIO_SPI3_SCK  GPIO_SPI3_SCK_1  /* PB3 */
 #define GPIO_SPI3_NSS  GPIO_SPI3_NSS_2  /* PA4 */
+
+/* TIM1 */
+
+#define GPIO_TIM1_CH1OUT  GPIO_TIM1_CH1OUT_2  /* PE9  - D6 */
+#define GPIO_TIM1_CH1NOUT GPIO_TIM1_CH1NOUT_3 /* PE8  - D42 */
+#define GPIO_TIM1_CH2OUT  GPIO_TIM1_CH2OUT_2  /* PE11 - D5 */
+#define GPIO_TIM1_CH2NOUT GPIO_TIM1_CH2NOUT_3 /* PE10 - D40 */
+#define GPIO_TIM1_CH3OUT  GPIO_TIM1_CH3OUT_2  /* PE13 - D3 */
+#define GPIO_TIM1_CH3NOUT GPIO_TIM1_CH3NOUT_3 /* PE12 - D39 */
+#define GPIO_TIM1_CH4OUT  GPIO_TIM1_CH4OUT_2  /* PE14 - D38 */
+
+/* DMA ******************************************************************************/
+
+#define DMAMAP_SPI3_RX DMAMAP_DMA12_SPI3RX_0 /* DMA1 */
+#define DMAMAP_SPI3_TX DMAMAP_DMA12_SPI3TX_0 /* DMA1 */
 
 /************************************************************************************
  * Public Data
